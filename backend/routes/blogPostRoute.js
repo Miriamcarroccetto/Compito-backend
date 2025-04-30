@@ -1,7 +1,28 @@
 import express from "express";
 import Blogpost from "../models/blogPostSchema.js";
+import multer from 'multer'
+import { v2 as cloudinary } from 'cloudinary'
+import { CloudinaryStorage } from 'multer-storage-cloudinary'
 
 const router = express.Router()
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  })
+  
+  const storage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+      folder: 'blogPost',
+      allowed_formats: ['jpg', 'jpeg', 'png'],
+      public_id: (req, file) => `avatar-${Date.now()}`
+    }
+  })
+  
+  const upload = multer({ storage })
+
 
 router.get('/', async (req, res, next)=> {
 
@@ -75,6 +96,20 @@ router.put('/:id', async (req, res, next)=> {
         next(err)
     }
 })
+
+router.patch('/:id/cover', upload.single('cover'), async (req, res, next) => {
+    try {
+      const blogPost = await Blogpost.findByIdAndUpdate(
+        req.params.id,
+        { cover: req.file.path },
+        { new: true }
+      )
+      if (!blogPost) return res.status(404).json({ error: 'Blogpost not found' })
+      res.status(200).json(blogPost)
+    } catch (err) {
+      next(err)
+    }
+  })
 
 router.delete('/:id', async (req, res, next)=> {
     try {

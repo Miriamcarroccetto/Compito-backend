@@ -1,7 +1,28 @@
 import express from "express";
 import Author from "../models/authorSchema.js";
+import multer from 'multer'
+import { v2 as cloudinary } from 'cloudinary'
+import { CloudinaryStorage } from 'multer-storage-cloudinary'
 
 const router = express.Router()
+
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  })
+  
+  const storage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+      folder: 'uploads',
+      allowed_formats: ['jpg', 'jpeg', 'png'],
+      public_id: (req, file) => `avatar-${Date.now()}`
+    }
+  })
+  
+  const upload = multer({ storage })
 
 router.get('/', async (req, res, next)=> {
 
@@ -72,6 +93,20 @@ router.put('/:id', async (req, res, next)=> {
         next(err)
     }
 })
+
+router.patch('/:id/avatar', upload.single('avatar'), async (req, res, next) => {
+    try {
+      const author = await Author.findByIdAndUpdate(
+        req.params.id,
+        { avatar: req.file.path },
+        { new: true }
+      )
+      if (!author) return res.status(404).json({ error: 'Author not found' })
+      res.status(200).json(author)
+    } catch (err) {
+      next(err)
+    }
+  })
 
 router.delete('/:id', async (req, res, next)=> {
     try {

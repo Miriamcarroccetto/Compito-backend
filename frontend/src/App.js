@@ -5,8 +5,21 @@ import Home from "./views/home/Home";
 import Blog from "./views/blog/Blog";
 import NewBlogPost from "./views/new/New";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 
 function App() {
+
+  const fetchAuthors = async ()=> {
+    const res = await fetch(process.env.REACT_APP_APIURL+ "/authors")
+    const data = await res.json()
+    console.log(data)
+  }
+
+  useEffect(()=> {
+   fetchAuthors()
+  }, [])
+
+
   return (
     <Router>
       <NavBar />
