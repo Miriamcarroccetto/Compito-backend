@@ -23,7 +23,9 @@ cloudinary.config({
   
   const upload = multer({ storage })
 
+// BLOGPOSTS
 
+//GET TUTTI BLOGPOSTS
 router.get('/', async (req, res, next)=> {
 
     const { page = 1, limit = 10 }= req.query
@@ -48,7 +50,7 @@ router.get('/', async (req, res, next)=> {
 })
 
 
-
+// GET BLOGPOST SPECIFICO
 router.get('/:id', async (req, res, next)=> {
     try {
         const blogPost = await Blogpost.findById(req.params.id)
@@ -61,6 +63,7 @@ router.get('/:id', async (req, res, next)=> {
 })
 
 
+//POST BLOGPOST
 router.post ('/', async (req, res, next)=> {
     const {category, title, cover, content, readtime, author}= req.body
     try {
@@ -81,13 +84,14 @@ router.post ('/', async (req, res, next)=> {
 
 })
 
+//PUT BLOGPOST SPECIFICO
 router.put('/:id', async (req, res, next)=> {
     try {
-        const author = await Blogpost.findByIdAndUpdate(req.params.id, req.body, {
+        const blogPost = await Blogpost.findByIdAndUpdate(req.params.id, req.body, {
             new:true, 
             runValidators: true
         })
-        if (!author) {
+        if (!blogPost) {
             return res.status(404).json({error: 'Blogpost not found'})
         }
         res.status(200).json(blogPost)
@@ -97,6 +101,7 @@ router.put('/:id', async (req, res, next)=> {
     }
 })
 
+//PATCH COVER SPECIFICO BLOGPOST
 router.patch('/:id/cover', upload.single('cover'), async (req, res, next) => {
     try {
       const blogPost = await Blogpost.findByIdAndUpdate(
@@ -111,14 +116,109 @@ router.patch('/:id/cover', upload.single('cover'), async (req, res, next) => {
     }
   })
 
+ //DELETE SPECIFICO BLOGPOST
 router.delete('/:id', async (req, res, next)=> {
     try {
         const blogPost = await Blogpost.findByIdAndDelete(req.params.id)
-    if(!blogPost) return res.status(404).json({error: 'Bogpost not found'})
+    if(!blogPost) return res.status(404).json({error: 'Blogpost not found'})
        res.status(200).json({ message: 'Blogpost deleted'})  
      } catch (err) {
         next(err)
      }
+})
+
+//COMMENTS
+
+
+//GET TUTTI COMMENTS DI UN BLOGPOST
+router.get('/:id/comments', async (req, res, next) => {
+    try {
+       const blogPost = await Blogpost.findById(req.params.id)
+       if (!blogPost) {
+        return res.status(404).json({ error: "Blogpost not found"})
+       }
+       res.status(200).json(blogPost.comments)
+    }catch (err) {
+        next(err)
+    }
+})
+
+//GET COMMENTO DI UN BLOGPOST
+router.get('/:id/comments/:commentId', async (req, res, next) => {
+    try {
+       const blogPost = await Blogpost.findById(req.params.id)
+       if (!blogPost) {
+        return res.status(404).json({ error: "Blogpost not found"})
+       }
+
+       const comment = blogPost.comments.id(req.params.commentId)
+       if(!comment) {
+        return res.status(404).json({ error: "Comment not found"})
+       }
+
+       res.status(200).json(comment)
+
+    }catch (err) {
+        next(err)
+    }
+})
+
+//POST COMMENTO
+
+router.post('/:id/comments', async (req, res, next)=> {
+    try {
+        const {username, text} = req.body
+        const blogPost = await Blogpost.findById(req.params.id)
+
+        if(!blogPost) {
+            return res.status(404).json({ error: "Blogpost not found"})
+        }
+        const newComment = {username, text}
+        blogPost.comments.push(newComment)
+        await blogPost.save()
+
+        res.status(201).json(blogPost.comments[blogPost.comments.length - 1])
+    } catch (err) {
+        next(err)
+    }
+}) 
+
+//MODIFICA COMMENT0
+router.put('/:id/comments/:commentId', async (req, res, next)=> {
+    try {
+        const blogPost = await Blogpost.findById(req.params.id)
+        if(!blogPost) return res.status(404).json({error: "Blogpost not found"})
+
+        const comment = blogPost.comments.id(req.params.commentId)
+        if(!comment) return res.status(404).json({error: "Comment not found"})
+
+        if(req.body.username) comment.username = req.body.username
+        if(req.body.text) comment.text = req.body.text
+
+        await blogPost.save()
+        res.status(200).json(comment)
+
+    } catch (err) {
+        next(err)
+    }
+})
+
+//ELIMINA COMMENTO
+router.delete('/:id/comments/:commentId', async (req, res, next)=> {
+    try {
+        const blogPost = await Blogpost.findById(req.params.id)
+        if(!blogPost) return res.status(404).json({ error: "Blogpost not found"})
+
+        const comment = blogPost.comments.id(req.params.commentId)
+        if(!comment) return res.status(404).json({ error: "Comment not found"})
+        
+        comment.remove()
+        await blogPost.save()
+
+        res.status(200).json({ message: "Comment deleted"})
+    } catch (err) {
+        next(err)
+    }
 })
 
 
