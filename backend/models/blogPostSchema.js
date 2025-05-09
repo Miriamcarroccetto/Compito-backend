@@ -1,23 +1,24 @@
 import mongoose from "mongoose";
+import {commentSchema}  from "./commentSchema.js";
 
-const commentSchema = new mongoose.Schema({
-    username: {type: String, required: true },
-    text: {type: String, require: true},
-    date: {type: Date, default: Date.now}
-})
-
-const blogPostSchema = new mongoose.Schema ({
-    category: {type: String , required: true},
-    title: {type: String, required: true},
-    cover: {type: String, required: true},
+const blogPostSchema = new mongoose.Schema({
+    category: { type: String, required: true },
+    title: { type: String, required: true },
+    cover: { type: String, required: true },
     readTime: {
-        value:{type:Number,required:true}, 
-        unit: {type:String,required:true} 
-     
-},
-    author: {type: String, required: true},
+      type: new mongoose.Schema({
+        value: { type: Number, required: true },
+        unit: { type: String, required: true }
+      }, { _id: false }) 
+    },
+    author: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Author",
+        required: true
+     },
     comments: [commentSchema]
-})
+  })
+  
 
 const Blogpost = mongoose.model ('Blogpost', blogPostSchema)
 

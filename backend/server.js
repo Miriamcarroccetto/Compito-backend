@@ -18,13 +18,15 @@ app.use(cors({
 
 app.use(express.json())
 
+import authEndpoint from './routes/auth.js'
+app.use(authEndpoint)
 
 db()
 
 
-app.get ('/', (req, res)=> {
-    res.send("Ciao Mondo!")
-})
+// app.get ('/', (req, res)=> {
+//     res.send("Ciao Mondo!")
+// })
 
 app.use ('/authors', authorRoute)
 app.use('/blogPosts', blogPostRoute)

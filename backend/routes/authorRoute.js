@@ -3,6 +3,13 @@ import Author from "../models/authorSchema.js";
 import multer from 'multer'
 import { v2 as cloudinary } from 'cloudinary'
 import { CloudinaryStorage } from 'multer-storage-cloudinary'
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+import 'dotenv/config'
+import authMiddleware from '../middlewares/authMiddleware.js'
+const saltRounds = parseInt(process.env.SALT_ROUNDS)
+const jwtSecretKey = process.env.JWT_SECRET_KEY
+
 
 const router = express.Router()
 
@@ -24,7 +31,7 @@ cloudinary.config({
   
   const upload = multer({ storage })
 
-router.get('/', async (req, res, next)=> {
+router.get('/', authMiddleware,  async (req, res, next)=> {
 
     const {page=1, limit=10}= req.query
     try {
@@ -47,7 +54,7 @@ router.get('/', async (req, res, next)=> {
     }
 })
 
-router.get('/:id', async (req, res, next)=> {
+router.get('/:id',authMiddleware,  async (req, res, next)=> {
     try {
         const author = await Author.findById(req.params.id)
         if(!author) return res.status(404).json({error: "Author not found"})
@@ -59,16 +66,19 @@ router.get('/:id', async (req, res, next)=> {
 })
 
 
-router.post ('/', async (req, res, next)=> {
-    const {name, lastname, email, birthday, avatar}= req.body
+router.post ('/', authMiddleware,  async (req, res, next)=> {
+    const {name, lastname, email, birthday, avatar, password}= req.body
     try {
+        const hashedPassword = await bcrypt.hash(password, saltRounds)
         const newAuthor = new Author ({
             name, 
             lastname, 
             email, 
             birthday, 
-            avatar
+            avatar,
+            password: hashedPassword
         })
+        
         await newAuthor.save()
 
         res.status(201).json(newAuthor)
@@ -78,7 +88,37 @@ router.post ('/', async (req, res, next)=> {
 
 })
 
-router.put('/:id', async (req, res, next)=> {
+
+router.post ('/login', async (req, res, next) => {
+    const email = req.body.email
+    const password = req.body.password
+
+    const authorLogin = await Author.findOne({email: email})
+    console.log(authorLogin)
+    if(authorLogin) {
+        const log = await bcrypt.compare(password, authorLogin.password)
+        if(log){
+
+            const token = jwt.sign({
+                id: authorLogin.id,
+                email: authorLogin.email,
+                name: authorLogin.name,
+                lastname: authorLogin.lastname
+
+            }, jwtSecretKey, {expiresIn: 60*60
+            })
+
+            return res.status(200).json(token)
+        } else {
+            return res.status(400).json({message: "Invalid password"})}
+        } else {
+            return res.status(400).json({message: "Invalid email"})
+        }
+    }
+)
+
+
+router.put('/:id',authMiddleware,  async (req, res, next)=> {
     try {
         const author = await Author.findByIdAndUpdate(req.params.id, req.body, {
             new:true, 
@@ -94,7 +134,7 @@ router.put('/:id', async (req, res, next)=> {
     }
 })
 
-router.patch('/:id/avatar', upload.single('avatar'), async (req, res, next) => {
+router.patch('/:id/avatar', authMiddleware,  upload.single('avatar'), async (req, res, next) => {
     try {
       const author = await Author.findByIdAndUpdate(
         req.params.id,
@@ -108,7 +148,7 @@ router.patch('/:id/avatar', upload.single('avatar'), async (req, res, next) => {
     }
   })
 
-router.delete('/:id', async (req, res, next)=> {
+router.delete('/:id',authMiddleware,  async (req, res, next)=> {
     try {
         const author = await Author.findByIdAndDelete(req.params.id)
     if(!author) return res.status(404).json({error: 'Author not found'})

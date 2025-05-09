@@ -3,6 +3,10 @@ import Blogpost from "../models/blogPostSchema.js";
 import multer from 'multer'
 import { v2 as cloudinary } from 'cloudinary'
 import { CloudinaryStorage } from 'multer-storage-cloudinary'
+import { validateAuthorId } from "../validation/authorValidation.js";
+import authMiddleware from '../middlewares/authMiddleware.js'
+import 'dotenv/config'
+
 
 const router = express.Router()
 
@@ -26,13 +30,14 @@ cloudinary.config({
 // BLOGPOSTS
 
 //GET TUTTI BLOGPOSTS
-router.get('/', async (req, res, next)=> {
+router.get('/', authMiddleware,  async (req, res, next)=> {
 
     const { page = 1, limit = 10 }= req.query
     try {
         const blogPosts = await Blogpost.find()
         .limit(parseInt(limit))
         .skip((parseInt(page) -1)*parseInt(limit))
+        .populate("author", "name lastName avatar")
 
         const total= await Blogpost.countDocuments()
 
@@ -51,9 +56,11 @@ router.get('/', async (req, res, next)=> {
 
 
 // GET BLOGPOST SPECIFICO
-router.get('/:id', async (req, res, next)=> {
+router.get('/:id',authMiddleware,  async (req, res, next)=> {
     try {
         const blogPost = await Blogpost.findById(req.params.id)
+        .populate("author", "name lastName avatar")
+
         if(!blogPost) return res.status(404).json({error: "Blogpost not found"})
             res.send(blogPost)
     } catch (err) {
@@ -64,7 +71,7 @@ router.get('/:id', async (req, res, next)=> {
 
 
 //POST BLOGPOST
-router.post ('/', async (req, res, next)=> {
+router.post ('/', authMiddleware, validateAuthorId, async (req, res, next)=> {
     const {category, title, cover, content, readtime, author}= req.body
     try {
         const newBlogPost = new Blogpost ({
@@ -85,12 +92,12 @@ router.post ('/', async (req, res, next)=> {
 })
 
 //PUT BLOGPOST SPECIFICO
-router.put('/:id', async (req, res, next)=> {
+router.put('/:id',authMiddleware,  async (req, res, next)=> {
     try {
         const blogPost = await Blogpost.findByIdAndUpdate(req.params.id, req.body, {
             new:true, 
             runValidators: true
-        })
+        }).populate("author", "name lastName avatar")
         if (!blogPost) {
             return res.status(404).json({error: 'Blogpost not found'})
         }
@@ -102,7 +109,7 @@ router.put('/:id', async (req, res, next)=> {
 })
 
 //PATCH COVER SPECIFICO BLOGPOST
-router.patch('/:id/cover', upload.single('cover'), async (req, res, next) => {
+router.patch('/:id/cover', authMiddleware,  upload.single('cover'), async (req, res, next) => {
     try {
       const blogPost = await Blogpost.findByIdAndUpdate(
         req.params.id,
@@ -117,7 +124,7 @@ router.patch('/:id/cover', upload.single('cover'), async (req, res, next) => {
   })
 
  //DELETE SPECIFICO BLOGPOST
-router.delete('/:id', async (req, res, next)=> {
+router.delete('/:id', authMiddleware, async (req, res, next)=> {
     try {
         const blogPost = await Blogpost.findByIdAndDelete(req.params.id)
     if(!blogPost) return res.status(404).json({error: 'Blogpost not found'})
@@ -131,7 +138,7 @@ router.delete('/:id', async (req, res, next)=> {
 
 
 //GET TUTTI COMMENTS DI UN BLOGPOST
-router.get('/:id/comments', async (req, res, next) => {
+router.get('/:id/comments', authMiddleware, async (req, res, next) => {
     try {
        const blogPost = await Blogpost.findById(req.params.id)
        if (!blogPost) {
@@ -144,7 +151,7 @@ router.get('/:id/comments', async (req, res, next) => {
 })
 
 //GET COMMENTO DI UN BLOGPOST
-router.get('/:id/comments/:commentId', async (req, res, next) => {
+router.get('/:id/comments/:commentId', authMiddleware, async (req, res, next) => {
     try {
        const blogPost = await Blogpost.findById(req.params.id)
        if (!blogPost) {
@@ -165,7 +172,7 @@ router.get('/:id/comments/:commentId', async (req, res, next) => {
 
 //POST COMMENTO
 
-router.post('/:id/comments', async (req, res, next)=> {
+router.post('/:id/comments', authMiddleware,  async (req, res, next)=> {
     try {
         const {username, text} = req.body
         const blogPost = await Blogpost.findById(req.params.id)
@@ -184,7 +191,7 @@ router.post('/:id/comments', async (req, res, next)=> {
 }) 
 
 //MODIFICA COMMENT0
-router.put('/:id/comments/:commentId', async (req, res, next)=> {
+router.put('/:id/comments/:commentId', authMiddleware, async (req, res, next)=> {
     try {
         const blogPost = await Blogpost.findById(req.params.id)
         if(!blogPost) return res.status(404).json({error: "Blogpost not found"})
@@ -204,7 +211,7 @@ router.put('/:id/comments/:commentId', async (req, res, next)=> {
 })
 
 //ELIMINA COMMENTO
-router.delete('/:id/comments/:commentId', async (req, res, next)=> {
+router.delete('/:id/comments/:commentId', authMiddleware, async (req, res, next)=> {
     try {
         const blogPost = await Blogpost.findById(req.params.id)
         if(!blogPost) return res.status(404).json({ error: "Blogpost not found"})
