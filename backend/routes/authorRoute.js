@@ -66,49 +66,67 @@ router.get('/:id',authMiddleware,  async (req, res, next)=> {
 })
 
 
-router.post ('/', authMiddleware,  async (req, res, next)=> {
-    const {name, lastname, email, birthday, avatar, password}= req.body
+router.post('/', async (req, res, next) => {
+    const { name, lastname, email, birthday, avatar, password } = req.body;
+
     try {
-        const hashedPassword = await bcrypt.hash(password, saltRounds)
-        const newAuthor = new Author ({
-            name, 
-            lastname, 
-            email, 
-            birthday, 
+       
+        const existingUser = await Author.findOne({ email })
+        if (existingUser) {
+            return res.status(400).json({ message: "Email già registrata" })
+        }
+
+       
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        
+        const newAuthor = new Author({
+            name,
+            lastname,
+            email,
+            birthday,
             avatar,
             password: hashedPassword
-        })
+        });
+
         
-        await newAuthor.save()
+        await newAuthor.save();
 
-        res.status(201).json(newAuthor)
+        
+        const token = jwt.sign({
+            id: newAuthor._id,
+            email: newAuthor.email,
+            name: newAuthor.name,
+            lastname: newAuthor.lastname
+        }, jwtSecretKey, { expiresIn: '60*60' })
+       
+        res.status(201).json({ token });
     } catch (err) {
-        next(err)
+        next(err);
     }
+});
 
-})
 
 
 router.post ('/login', async (req, res, next) => {
-    const email = req.body.email
-    const password = req.body.password
+    const {email, password } = req.body
 
-    const authorLogin = await Author.findOne({email: email})
-    console.log(authorLogin)
-    if(authorLogin) {
-        const log = await bcrypt.compare(password, authorLogin.password)
+    const user = await Author.findOne({email: email})
+    console.log(user)
+    if(user) {
+        const log = await bcrypt.compare(password, user.password)
         if(log){
 
             const token = jwt.sign({
-                id: authorLogin.id,
-                email: authorLogin.email,
-                name: authorLogin.name,
-                lastname: authorLogin.lastname
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                lastname: user.lastname
 
             }, jwtSecretKey, {expiresIn: 60*60
             })
 
-            return res.status(200).json(token)
+            return res.status(200).json({token})
         } else {
             return res.status(400).json({message: "Invalid password"})}
         } else {

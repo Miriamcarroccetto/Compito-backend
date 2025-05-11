@@ -1,26 +1,68 @@
-import React from 'react'
-import { Form, Button, Container } from 'react-bootstrap';
+import { useState } from 'react';
+import { Form, Button, Container, Alert } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom'
+import "../pages/style.css"
+
 
 export default function LoginPage() {
+
+    const navigate = useNavigate()
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [errorMsg, setErrorMsg] = useState('');
+    
+    
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await fetch(`${process.env.REACT_APP_APIURL}/authors/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+
+           
+
+            if (!res.ok) {
+                throw new Error(data.message || "Errore nel login");
+            }
+
+            if (data.token) {localStorage.setItem("token", data.token)} else {
+                console.warn("Nessun token ricevuto dal backend")
+            }
+
+            
+            navigate('/home')
+
+        } catch (err) {
+            setErrorMsg(err.message);
+        }
+    };
+    
+
     return (
-        <Container className="mt-5" style={{ maxWidth: '400px' }}>
+        <Container className="page-container mt-5 pt-5" style={{ maxWidth: '400px' }}>
             <h2>Login</h2>
-            {/* {errorMsg && <Alert variant="danger">{errorMsg}</Alert>} */}
-            <Form /*onSubmit={handleLogin}*/>
+            {errorMsg && <Alert variant="danger">{errorMsg}</Alert>}
+            <Form onSubmit={handleLogin}>
                 <Form.Group className="mb-3">
                     <Form.Label>Email</Form.Label>
                     <Form.Control
                         type="email"
-                        // value={email} 
-                        // onChange={(e) => setEmail(e.target.value)} 
+                        value={email} 
+                        onChange={(e) => setEmail(e.target.value)} 
                         required />
                 </Form.Group>
                 <Form.Group className="mb-3">
                     <Form.Label>Password</Form.Label>
                     <Form.Control
                         type="password"
-                        // value={password} 
-                        // onChange={(e) => setPassword(e.target.value)} 
+                        value={password} 
+                        onChange={(e) => setPassword(e.target.value)} 
                         required />
                 </Form.Group>
                 <Button type="submit" variant="primary">Login</Button>
