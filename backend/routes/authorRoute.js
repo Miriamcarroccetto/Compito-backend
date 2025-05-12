@@ -7,13 +7,14 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import 'dotenv/config'
 import authMiddleware from '../middlewares/authMiddleware.js'
+import passport from "passport";
 const saltRounds = parseInt(process.env.SALT_ROUNDS)
 const jwtSecretKey = process.env.JWT_SECRET_KEY
 
 
 const router = express.Router()
 
-
+//CLOUDINARY
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -31,6 +32,7 @@ cloudinary.config({
   
   const upload = multer({ storage })
 
+//GET TUTTI AUTORI
 router.get('/', authMiddleware,  async (req, res, next)=> {
 
     const {page=1, limit=10}= req.query
@@ -54,6 +56,26 @@ router.get('/', authMiddleware,  async (req, res, next)=> {
     }
 })
 
+//GET PROFILO UTENTE
+
+router.get('/me', authMiddleware, async (req, res, next) => {
+  try {
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ error: "Non autorizzato" });
+    }
+    const author = await Author.findById(userId);
+    if (!author) {
+      return res.status(404).json({ error: "Utente non trovato" });
+    }
+    res.status(200).json(author);
+  } catch (err) {
+    next(err);
+  }
+});
+
+//GET PROFILO CON ID
+
 router.get('/:id',authMiddleware,  async (req, res, next)=> {
     try {
         const author = await Author.findById(req.params.id)
@@ -66,6 +88,8 @@ router.get('/:id',authMiddleware,  async (req, res, next)=> {
 })
 
 
+//POST AUTORE
+ 
 router.post('/', async (req, res, next) => {
     const { name, lastname, email, birthday, avatar, password } = req.body;
 
@@ -107,7 +131,7 @@ router.post('/', async (req, res, next) => {
 });
 
 
-
+//LOGIN 
 router.post ('/login', async (req, res, next) => {
     const {email, password } = req.body
 
@@ -135,6 +159,25 @@ router.post ('/login', async (req, res, next) => {
     }
 )
 
+//GOOGLE LOGIN
+
+router.get('/auth/googlelogin', passport.authenticate("google", {scope:["profile", "email"]}) )
+
+router.get('/auth/callback', passport.authenticate("google", {session: false, failureRedirect: '/login'}),
+ (req, res, next)=> {
+   try {
+       res.redirect(`http://localhost:3000/home?token=${req.user.accessToken}`)
+
+      if (!token) {
+        return res.status(400).json({ message: "Token non trovato" });
+      }
+    
+    } catch (err) {
+      next(err)
+    }
+})
+
+//MODIFICA UTENTE 
 
 router.put('/:id',authMiddleware,  async (req, res, next)=> {
     try {
@@ -152,6 +195,8 @@ router.put('/:id',authMiddleware,  async (req, res, next)=> {
     }
 })
 
+//MODIFICA IMMAGINE
+
 router.patch('/:id/avatar', authMiddleware,  upload.single('avatar'), async (req, res, next) => {
     try {
       const author = await Author.findByIdAndUpdate(
@@ -166,6 +211,8 @@ router.patch('/:id/avatar', authMiddleware,  upload.single('avatar'), async (req
     }
   })
 
+
+//ELIMINA UTENTE
 router.delete('/:id',authMiddleware,  async (req, res, next)=> {
     try {
         const author = await Author.findByIdAndDelete(req.params.id)
@@ -175,5 +222,7 @@ router.delete('/:id',authMiddleware,  async (req, res, next)=> {
         next(err)
      }
 })
+
+
 
 export default router

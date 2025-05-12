@@ -6,12 +6,14 @@ import Footer from "./components/footer/Footer";
 import Home from "./views/home/Home";
 import Blog from "./views/blog/Blog";
 import NewBlogPost from "./views/new/New";
+import ProfilePage from "./components/pages/ProfilePage";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 
 
 export default function App() {
+  
   const [isLoggedIn, setIsLoggedIn] = useState(false);
  
   const fetchAuthors = async () => {
@@ -52,6 +54,8 @@ export default function App() {
        <Route path="/new" element={<NewBlogPost />} />
         <Route path="/" element={<LoginPage setIsLoggedIn={setIsLoggedIn} fetchAuthors={fetchAuthors} />} />
         <Route path="/register" element={<RegisterPage setIsLoggedIn={setIsLoggedIn} fetchAuthors={fetchAuthors} />} />
+        <Route path="/authors/me" element={<ProfilePage />} />
+
       </Routes>
        <Footer />
     </Router>

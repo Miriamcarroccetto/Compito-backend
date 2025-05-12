@@ -4,6 +4,9 @@ import db from "./db.js";
 import authorRoute from './routes/authorRoute.js'
 import blogPostRoute from './routes/blogPostRoute.js'
 import cors from 'cors'
+import authEndpoint from './routes/auth.js'
+import passport from 'passport'
+import GoogleStrategy from "./middlewares/OAuthMiddleware.js";
 
 
 
@@ -17,8 +20,9 @@ app.use(cors({
 }))
 
 app.use(express.json())
+passport.use('google', GoogleStrategy)
 
-import authEndpoint from './routes/auth.js'
+
 app.use(authEndpoint)
 
 db()

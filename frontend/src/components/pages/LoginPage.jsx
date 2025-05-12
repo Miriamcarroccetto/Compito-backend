@@ -1,16 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Form, Button, Container, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import "../pages/style.css"
 
 
 export default function LoginPage({ setIsLoggedIn, fetchAuthors }) {
 
+    const location = useLocation();
     const navigate = useNavigate()
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
 
+
+      useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const token = params.get("token");
+
+        if (token) {
+     
+            localStorage.setItem("token", token);
+            setIsLoggedIn(true);
+            fetchAuthors();
+           
+            navigate("/home");
+        }
+    }, [location, navigate, setIsLoggedIn, fetchAuthors])
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -74,6 +89,10 @@ export default function LoginPage({ setIsLoggedIn, fetchAuthors }) {
 
             <p className="mt-3">
                 Non hai un account? <a href="/register">Registrati qui</a>
+            </p>
+
+            <p className="mt-3"> 
+                <a href="http://localhost:3001/authors/auth/googlelogin">Accedi con Google</a>
             </p>
 
         </Container>

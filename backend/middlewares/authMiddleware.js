@@ -22,7 +22,7 @@ const authMiddleware = async (req, res, next) => {
         return res.status(401).send('Author not found')
       }
   
-      req.author = me
+      req.user = me
       next()
     } catch (err) {
       return res.status(401).send('Invalid or expired token')
