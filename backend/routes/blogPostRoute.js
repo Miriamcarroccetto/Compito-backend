@@ -79,7 +79,7 @@ router.post ('/', authMiddleware, validateAuthorId, async (req, res, next)=> {
             title, 
             cover, 
             content, 
-            readtime, 
+            readTime, 
             author
         })
         await newBlogPost.save()
