@@ -27,36 +27,6 @@ export default function RegisterPage() {
         });
     };
 
-    const handleImageUpload = async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-
-            setImagePreview(URL.createObjectURL(file));
-
-            const formDataCloudinary = new FormData();
-            formDataCloudinary.append('file', file);
-            formDataCloudinary.append('upload_preset', uploadPreset)
-
-            try {
-
-                const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-                    method: 'POST',
-                    body: formDataCloudinary
-                });
-
-                const data = await res.json();
-                if (data.secure_url) {
-
-                    setFormData({ ...formData, avatar: data.secure_url });
-                } else {
-                    setErrorMsg('Errore nel caricamento dell\'immagine');
-                }
-            } catch (err) {
-                setErrorMsg('Errore nel caricamento dell\'immagine');
-            }
-        }
-    };
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -132,11 +102,12 @@ export default function RegisterPage() {
                     <Form.Group className="mb-3">
                         <Form.Label>Avatar</Form.Label>
                         <Form.Control
-                            type="file"
-                            name="avatar"
-                            onChange={handleImageUpload}
-                            accept="image/*"
-                        />
+                        type="text"
+                        name="avatar"
+                        value={formData.avatar}
+                        onChange={handleChange}
+                        required
+                    />
                         {imagePreview && (
                             <div className="mt-3">
                                 <img src={imagePreview} alt="Avatar Preview" style={{ maxWidth: '100%', maxHeight: '200px' }} />

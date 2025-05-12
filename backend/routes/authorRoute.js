@@ -98,7 +98,7 @@ router.post('/', async (req, res, next) => {
             email: newAuthor.email,
             name: newAuthor.name,
             lastname: newAuthor.lastname
-        }, jwtSecretKey, { expiresIn: '60*60' })
+        }, jwtSecretKey, { expiresIn: '60d' })
        
         res.status(201).json({ token });
     } catch (err) {
@@ -123,7 +123,7 @@ router.post ('/login', async (req, res, next) => {
                 name: user.name,
                 lastname: user.lastname
 
-            }, jwtSecretKey, {expiresIn: 60*60
+            }, jwtSecretKey, {expiresIn: '60d'
             })
 
             return res.status(200).json({token})

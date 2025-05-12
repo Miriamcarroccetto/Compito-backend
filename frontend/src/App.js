@@ -8,9 +8,11 @@ import Blog from "./views/blog/Blog";
 import NewBlogPost from "./views/new/New";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
+import { useState } from "react";
 
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
  
   const fetchAuthors = async () => {
      const token = localStorage.getItem("token")
@@ -37,8 +39,9 @@ export default function App() {
 };
 
   useEffect(() => {
-    fetchAuthors()
-  }, [])
+    if (isLoggedIn) {
+    fetchAuthors()}
+  }, [isLoggedIn])
 
   return (
     <Router>
@@ -47,8 +50,8 @@ export default function App() {
         <Route path="/home" exact element={<Home />} />
         <Route path="/blog/:id" element={<Blog />} />
        <Route path="/new" element={<NewBlogPost />} />
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/" element={<LoginPage setIsLoggedIn={setIsLoggedIn} fetchAuthors={fetchAuthors} />} />
+        <Route path="/register" element={<RegisterPage setIsLoggedIn={setIsLoggedIn} fetchAuthors={fetchAuthors} />} />
       </Routes>
        <Footer />
     </Router>

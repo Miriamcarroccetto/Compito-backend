@@ -4,14 +4,14 @@ import { useNavigate } from 'react-router-dom'
 import "../pages/style.css"
 
 
-export default function LoginPage() {
+export default function LoginPage({ setIsLoggedIn, fetchAuthors }) {
 
     const navigate = useNavigate()
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
-    
-    
+
+
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
@@ -25,24 +25,28 @@ export default function LoginPage() {
 
             const data = await res.json();
 
-           
+
 
             if (!res.ok) {
                 throw new Error(data.message || "Errore nel login");
             }
 
-            if (data.token) {localStorage.setItem("token", data.token)} else {
+            if (data.token) {
+                localStorage.setItem("token", data.token)
+                setIsLoggedIn(true);
+                fetchAuthors()
+            } else {
                 console.warn("Nessun token ricevuto dal backend")
             }
 
-            
+
             navigate('/home')
 
         } catch (err) {
             setErrorMsg(err.message);
         }
     };
-    
+
 
     return (
         <Container className="page-container mt-5 pt-5" style={{ maxWidth: '400px' }}>
@@ -53,16 +57,16 @@ export default function LoginPage() {
                     <Form.Label>Email</Form.Label>
                     <Form.Control
                         type="email"
-                        value={email} 
-                        onChange={(e) => setEmail(e.target.value)} 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         required />
                 </Form.Group>
                 <Form.Group className="mb-3">
                     <Form.Label>Password</Form.Label>
                     <Form.Control
                         type="password"
-                        value={password} 
-                        onChange={(e) => setPassword(e.target.value)} 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         required />
                 </Form.Group>
                 <Button type="submit" variant="primary">Login</Button>
