@@ -23,7 +23,7 @@ const googleStrategy = new GoogleStrategy({
                 name: user.name,
                 lastname: user.lastname
             }, jwtSecretKey, { expiresIn: '60d'})
-            passportNext(null, {accessToken})
+             return passportNext(null, {accessToken})
         } else {
             const newUser = new Author ({
                  name: given_name,
@@ -36,17 +36,18 @@ const googleStrategy = new GoogleStrategy({
                  
             })
             const createUser = await newUser.save()
+
             const accessToken = jwt.sign({
                 id: createUser.id,
                 email: createUser.email,
                 name: createUser.name,
                 lastname: createUser.lastname
             }, jwtSecretKey, { expiresIn: '60d'})
-            
+             return passportNext(null, { accessToken })
         }
-        passportNext(null, { profile })
+       
     } catch (err) {
-        passportNext(err)
+       return passportNext(err)
     }
 }
 

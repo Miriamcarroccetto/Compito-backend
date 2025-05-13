@@ -2,9 +2,10 @@ import mongoose from "mongoose";
 import {commentSchema}  from "./commentSchema.js";
 
 const blogPostSchema = new mongoose.Schema({
-    category: { type: String, required: true },
     title: { type: String, required: true },
+    category: { type: String, required: true },
     cover: { type: String, required: true },
+    content: { type: String, required: true },
     readTime: {
       type: new mongoose.Schema({
         value: { type: Number, required: true },

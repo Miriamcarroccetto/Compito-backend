@@ -17,7 +17,7 @@ const NewBlogPost = () => {
       if (!token) return;
 
       try {
-        const res = await fetch(`${process.env.REACT_APP_APIURL}/blogPosts`, {
+        const res = await fetch(`${process.env.REACT_APP_APIURL}/authors/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -53,8 +53,9 @@ const NewBlogPost = () => {
         value: Number(readTimeValue),
         unit: readTimeUnit,
       },
-      author: currentAuthorId,
+      author: currentAuthorId
     };
+    console.log("Payload inviato:", JSON.stringify(payload, null, 2))
 
     try {
       const res = await fetch(`${process.env.REACT_APP_APIURL}/blogPosts`, {

@@ -7,6 +7,7 @@ import cors from 'cors'
 import authEndpoint from './routes/auth.js'
 import passport from 'passport'
 import GoogleStrategy from "./middlewares/OAuthMiddleware.js";
+import errorHandler from './middlewares/errorHandler.js'
 
 
 
@@ -34,6 +35,8 @@ db()
 
 app.use ('/authors', authorRoute)
 app.use('/blogPosts', blogPostRoute)
+
+app.use(errorHandler)
 
 app.listen(process.env.PORT, ()=> {
     console.log(`Server is running on port ${process.env.PORT}`)
