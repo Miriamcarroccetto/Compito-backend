@@ -3,20 +3,20 @@ import mongoose from 'mongoose';
 
 
 export const validateAuthorId = async (req, res, next) => {
-    const { author } = req.body
+    const authorId = req.user?._id
 
-    if (!mongoose.Types.ObjectId.isValid(author)) {
-        return res.status(400).json({ error: 'Invalid author ID format' })
+    if (!mongoose.Types.ObjectId.isValid(authorId)) {
+        return res.status(400).json({ error: 'ID autore non corretto' })
     }
 
     try {
-        const authorExists = await Author.findById(author)
+        const authorExists = await Author.findById(authorId)
         if (!authorExists) {
-            return res.status(404).json({ error: 'Author not found' })
+            return res.status(404).json({ error: 'Autore non trovato' })
         }
 
         next()
     } catch (err) {
-        return res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({ error: 'Errore lato server' });
     }
 };

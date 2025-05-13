@@ -5,7 +5,8 @@ import '../pages/style.css';
 export default function RegisterPage() {
 
     const cloudName = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
-    const uploadPreset = process.env.REACT_APP_CLOUDINARY_PRESET
+    const uploadPreset = process.env.REACT_APP_CLOUDINARY_PRESET;
+
     const [formData, setFormData] = useState({
         name: '',
         lastname: '',
@@ -15,7 +16,7 @@ export default function RegisterPage() {
         password: '',
 
     });
-    const [imagePreview, setImagePreview] = useState('')
+    const [imagePreview, setImagePreview] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
 

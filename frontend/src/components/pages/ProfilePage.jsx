@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Container, Card, Spinner, Alert, Row, Col } from "react-bootstrap";
+import { Container, Card, Spinner, Alert, Row, Col, Button } from "react-bootstrap";
 import "./style.css";
 
 const ProfilePage = () => {
     const [author, setAuthor] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-
+    const [isUploading, setIsUploading] = useState(false); 
+    const [image, setImage] = useState(null);  
     useEffect(() => {
         const fetchAuthor = async () => {
             try {
@@ -43,7 +44,50 @@ const ProfilePage = () => {
 
         fetchAuthor();
     }, []);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImage(file);
+        }
+    };
+
     
+    const handleImageUpload = async () => {
+        if (!image) return;
+
+        const formData = new FormData();
+        formData.append('avatar', image);
+
+        const token = localStorage.getItem("token");
+
+        try {
+            setIsUploading(true);
+
+            const response = await fetch(`${process.env.REACT_APP_APIURL}/authors/${author._id}/avatar`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                setError(`Errore nel caricamento dell'immagine: ${errorText}`);
+                return;
+            }
+
+            const updatedAuthor = await response.json();
+            setAuthor(updatedAuthor);  
+            setImage(null); 
+        } catch (err) {
+            setError("Errore nel caricamento dell'immagine");
+            console.error("Errore nel caricamento dell'immagine", err);
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -67,9 +111,7 @@ const ProfilePage = () => {
                 <Card style={{ width: "22rem" }} className="shadow-lg">
                     <Card.Img
                         variant="top"
-                        src={
-                            author.avatar
-                        }
+                        src={author.avatar || "default-avatar.jpg"}  
                         alt="avatar"
                         style={{ objectFit: "cover", height: "300px" }}
                     />
@@ -80,6 +122,25 @@ const ProfilePage = () => {
                             <strong>Email:</strong> {author.email}<br />
                             <strong>Birthday:</strong> {new Date(author.birthday).toLocaleDateString()}
                         </Card.Text>
+
+                        <Row>
+                            <Col>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    disabled={isUploading}
+                                />
+                            </Col>
+                            <Col>
+                                <Button
+                                    onClick={handleImageUpload}
+                                    disabled={isUploading || !image}
+                                >
+                                    {isUploading ? "Caricamento..." : "Carica Immagine"}
+                                </Button>
+                            </Col>
+                        </Row>
                     </Card.Body>
                 </Card>
             ) : (

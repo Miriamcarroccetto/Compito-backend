@@ -2,18 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Col, Row } from "react-bootstrap";
 import BlogItem from "../blog-item/BlogItem";
 
-const BlogList = () => {
+const BlogList = ({ searchQuery }) => {  
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null)
-
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchBlogPosts = async () => {
       try {
-
         const token = localStorage.getItem('token');
-
 
         if (!token) {
           throw new Error("Token di autenticazione mancante");
@@ -42,7 +39,12 @@ const BlogList = () => {
     };
 
     fetchBlogPosts();
-  }, []);
+  }, []);  
+  
+  const filteredPosts = posts.filter(post =>
+    (post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (post.content && post.content.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   if (loading) {
     return <div>Loading...</div>;
@@ -52,20 +54,23 @@ const BlogList = () => {
     return <div>Error: {error}</div>;
   }
 
-
   return (
     <Row>
-      {posts.map((post, i) => (
-        <Col
-          key={`item-${i}`}
-          md={4}
-          style={{
-            marginBottom: 50,
-          }}
-        >
-          <BlogItem key={post.title} {...post} />
-        </Col>
-      ))}
+      {filteredPosts.length > 0 ? (
+        filteredPosts.map((post, i) => (
+          <Col
+            key={`item-${i}`}
+            md={4}
+            style={{
+              marginBottom: 50,
+            }}
+          >
+            <BlogItem key={post.title} {...post} />
+          </Col>
+        ))
+      ) : (
+        <p>Nessun post trovato per la tua ricerca.</p>
+      )}
     </Row>
   );
 };

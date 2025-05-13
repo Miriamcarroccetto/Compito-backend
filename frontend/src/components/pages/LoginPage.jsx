@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Form, Button, Container, Alert } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom'
-import "../pages/style.css"
+import "../pages/style.css";
 
 
 export default function LoginPage({ setIsLoggedIn, fetchAuthors }) {
 
     const location = useLocation();
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
@@ -25,7 +25,7 @@ export default function LoginPage({ setIsLoggedIn, fetchAuthors }) {
            
             navigate("/home");
         }
-    }, [location, navigate, setIsLoggedIn, fetchAuthors])
+    }, [location, navigate, setIsLoggedIn, fetchAuthors]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -48,14 +48,14 @@ export default function LoginPage({ setIsLoggedIn, fetchAuthors }) {
 
             if (data.token) {
                 localStorage.setItem("token", data.token)
-                setIsLoggedIn(true);
+                setIsLoggedIn(true)
                 fetchAuthors()
             } else {
                 console.warn("Nessun token ricevuto dal backend")
             }
 
 
-            navigate('/home')
+            navigate('/home');
 
         } catch (err) {
             setErrorMsg(err.message);

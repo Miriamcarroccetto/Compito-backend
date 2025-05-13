@@ -52,8 +52,7 @@ const NewBlogPost = () => {
       readTime: {
         value: Number(readTimeValue),
         unit: readTimeUnit,
-      },
-      author: currentAuthorId
+      }
     };
     console.log("Payload inviato:", JSON.stringify(payload, null, 2))
 
@@ -166,9 +165,22 @@ const NewBlogPost = () => {
         </Form.Group>
 
         <Form.Group className="d-flex mt-4 justify-content-end">
-          <Button type="reset" size="lg" variant="outline-dark">
+          <Button
+            type="button"
+            size="lg"
+            variant="outline-dark"
+            onClick={() => {
+              setTitle("");
+              setCategory("");
+              setCover("");
+              setReadTimeValue("");
+              setReadTimeUnit("");
+              setContent("");
+            }}
+          >
             Reset
           </Button>
+
           <Button
             type="submit"
             size="lg"
